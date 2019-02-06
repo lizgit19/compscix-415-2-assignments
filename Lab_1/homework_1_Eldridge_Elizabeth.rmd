@@ -1,0 +1,52 @@
+---
+  title: "COMPSCIX415.2 Hmwk 1"
+author: "Elizabeth Eldridge"
+date: "February 4, 2019"
+output: html_document
+---
+  
+  Install/load Tidyverse and MDSR
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)  #already installed
+install.packages("mdsr",repos='http://cran.us.r-project.org')
+library(mdsr)
+
+```
+
+Load Data
+```{r include=TRUE}
+
+data("WorldCities")
+glimpse(WorldCities)
+
+WorldCities<- head(WorldCities, 200)
+country_col<- WorldCities$country
+unique(country_col)
+
+```
+
+Question 1:
+  WorldCities is a dataframe with 23,018 observations
+and 10 variables
+
+Question 2:
+  ```{r}
+Region_col<-WorldCities$region
+unique(Region_col)
+```
+
+Question 3:
+  ```{R}
+WorldCities%>%select(country)%>%unique()
+
+WorldCities%>%ggplot(aes(x=population)) +
+  geom_histogram() +
+  xlab('City Population') +
+  ggtitle('Population by City') +
+  theme_bw()
+
+```
+
+
