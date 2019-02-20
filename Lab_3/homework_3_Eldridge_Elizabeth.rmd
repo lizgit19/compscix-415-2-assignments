@@ -1,0 +1,249 @@
+---
+title: "COMPSCIX 415.2 Homework 3"
+author: "Elizabeth Eldridge"
+date: "February 12, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+#install.packages("nycflights13")
+library(tidyverse)
+library(nycflights13)
+
+
+```
+
+#Section 3.8.1: all exercises
+
+1.) What is the problem with this plot? How could you improve it?
+
+This plot is lacking x and y-axis labels and units of measure so I would label these. 
+The data also have many repeated rounded values leading to "overplotting" so you could add the jitter option to "add noise".The plot as is also does not differentiate between any type of car which may be helpful to see- we can add this visually by adding color by class of car.
+
+```{r}
+
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_point()
+
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy, color=class)) + 
+  geom_point() +
+  geom_jitter() +
+  xlab("City miles per gallon") +
+  ylab("Highway miles per gallon")
+```
+
+2.) What parameters to geom_jitter() control the amount of jittering?
+
+The geom_jitter() geom is shorthand for geom_point(position = "jitter") and creates a random amount of jittering,
+therefore does not require parameters to control the amount of jittering. However, by adding position = position_jitter() and 
+using the "width" and "height" parameters you can control the amount of vertical and horizontal jitter. Setting a random seed
+number in the "Seed" parameter will make this jitter reproducible, as seen in the different exmaples below.
+
+```{r}
+#?geom_jitter
+#?position_jitter
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy, color=class)) + 
+  geom_point() +
+  geom_jitter(position = position_jitter(width = 5, height = 2, seed = 4576)) +
+  xlab("City miles per gallon") +
+  ylab("Highway miles per gallon") 
+
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy, color=class)) + 
+  geom_point() +
+  geom_jitter(position = position_jitter(width = 2, height = 6, seed = 4575)) +
+  xlab("City miles per gallon") +
+  ylab("Highway miles per gallon") 
+
+```
+
+3.) Compare and contrast geom_jitter() with geom_count().
+
+The geom_jitter geom randomly "adds noise" to separate overlapping points created by "overplotting", whereas the geom_count geom
+increases the size of the point on the plot dependent on how many overlapping points are sharing the same spot, as well as adds
+a legend to define the sizes of the points.
+
+```{r}
+#?geom_jitter
+#?geom_count
+
+#examples from help pages:
+ggplot(mpg, aes(cty, hwy)) +
+ geom_jitter()
+
+ggplot(mpg, aes(cty, hwy)) +
+ geom_count()
+
+```
+
+4.) What’s the default position adjustment for geom_boxplot()? Create a visualisation of the mpg dataset that demonstrates it.
+
+The default position for geom_boxplot() is position="dodge", demonstrated by the below:
+
+```{r}
+#?geom_boxplot()
+#default
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+  geom_boxplot()
+#same
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+  geom_boxplot(position="dodge")
+
+```
+
+#Section 3.9.1: #2 and #4 only
+
+2.) What does labs() do? Read the documentation.
+
+Labs() enables you to modify the labels of axes, legends, and plots by using any or all of the 
+arguments "title", "subtitle", "caption", "tag", or "label".
+
+```{r}
+#?labs()
+```
+
+4.) What does the plot below tell you about the relationship between city and highway mpg? Why is coord_fixed() important? What does geom_abline() do?
+
+This plot tells us that city and highway mpg are correlated in such a way that highway mpg increases
+as city mpg increases. Coord_fixed() fixes the aspect ratio so that the units on the y-axis are
+equivalent to that on the x-axis, otherwise the units of the x-axis make this plot look much wider.
+Geom_abline() adds a reference line to the plot controlled by slope and intercept.
+
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
+  geom_point() + 
+  geom_abline() +
+  coord_fixed()
+
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
+  geom_point() + 
+  geom_abline()
+
+#?coord_fixed()
+#?geom_abline()
+```
+
+
+#Section 4.4: #1 and #2 only
+
+1.) Why does this code not work?
+    Look carefully! (This may seem like an exercise in pointlessness, but training        your brain to notice even the tiniest difference will pay off when programming.)
+    
+The "i" in the data call is not an i.
+
+```{r}
+my_variable <- 10
+my_varıable
+
+```
+
+2.) Tweak each of the following R commands so that they run correctly:
+
+```{r}
+library(tidyverse)
+
+#this works as is??
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = hwy, y = displ)) 
+
+#fliter(mpg, cyl = 8)
+##corrected: fix spelling of 'filter' and add equal sign.
+(filter(mpg, cyl == 8))
+
+#filter(diamond, carat > 3)
+##corrected- fix spelling of dataset
+filter(diamonds, carat > 3)
+
+```
+
+
+#Section 5.2.4: #1, #3 and #4 only.
+
+1.) Find all flights that
+
+    1.Had an arrival delay of two or more hours
+    2.Flew to Houston (IAH or HOU)
+    3.Were operated by United, American, or Delta
+    4.Departed in summer (July, August, and September)
+    5.Arrived more than two hours late, but didn’t leave late
+    6.Were delayed by at least an hour, but made up over 30 minutes in flight
+    7.Departed between midnight and 6am (inclusive)
+    
+```{r}
+library(nycflights13)
+library(tidyverse)
+library(dplyr)
+names(flights)
+View(flights)
+
+#1
+(filter(flights, arr_delay >= 120))  #arrival delays in minutes
+#2
+(filter(flights, dest=='IAH' | dest=='HOU'))
+#3
+unique(flights$carrier)
+(filter(flights, carrier %in% c('UA','DL','AA')))
+#4
+unique(flights$month)
+(filter(flights, month %in% c(7, 8, 9)))
+#5
+(filter(flights, (arr_delay > 120 & dep_delay <=0)))
+#6
+(filter(flights, (dep_delay >= 60 & arr_delay <= 30)))   
+#7
+unique(flights$sched_dep_time)
+(filter(flights, (dep_time>=1200 & dep_time<=600)))   
+
+
+```
+
+3.) How many flights have a missing dep_time? What other variables are missing? What might these rows represent?
+
+336,776 flights have a missing departure time.
+
+```{r}
+length(is.na(flights$dep_time))
+```
+
+4.) Why is NA ^ 0 not missing? Why is NA | TRUE not missing? Why is FALSE & NA not missing? Can you figure out the general rule? (NA * 0 is a tricky counterexample!)
+
+As opposed to other programming languages that consider missing values to be an actually value (for example: in SAS missings are a very small negative number), in R NA can be thought of as an 'unknown value' so any operation that you perform on an unknown value where operations that involve comparisons cannot be used. 
+
+```{r}
+is.na(NA^0)
+is.na(NA|TRUE)
+is.na(FALSE & NA)
+is.na(NA*0)
+
+```
+
+
+#Section 5.4.1: #1 and #3 only
+
+1.) Brainstorm as many ways as possible to select dep_time, dep_delay, arr_time, and arr_delay from flights.
+
+```{r}
+#View(flights)
+(select(flights, dep_time, dep_delay, arr_time, arr_delay))
+(select(flights, 4:9, -starts_with('sched')))
+(select(flights, contains("dep_"), contains("arr_"), -starts_with("sched")))
+
+```
+
+3.) What does the one_of() function do? Why might it be helpful in conjunction with this vector?
+
+The one_of() function is a helper function that can be used with the 'select' function which defines variables within a vector. This could be useful if you are wanting to perform an operation using the select function only on a defined subset of variables.
+
+```{r}
+vars <- c("year", "month", "day", "dep_delay", "arr_delay")
+
+select(flights, one_of(vars))
+```
+
+
+
+
