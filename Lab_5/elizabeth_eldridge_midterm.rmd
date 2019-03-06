@@ -1,0 +1,249 @@
+---
+title: "COMPSCIX 415.2 Homework 5/Midterm"
+author: "Elizabeth Eldridge"
+date: "March 3, 2019"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+```
+
+##Question 1
+
+1. Can you name which package is associated with each task below?
+
+Plotting - ggplot2 <br /> 
+Data munging/wrangling - dplyr <br />
+Reshaping (speading and gathering) data - dplyr <br />
+Importing/exporting data - readr <br />
+
+##Question 2
+
+2. Now can you name two functions that you’ve used from each package that you listed above for these
+tasks? <br />
+
+Plotting - geom_point, geom_bar <br />
+Data munging/wrangling - select(), filter() <br />
+Reshaping data - gather(), spread() <br />
+Importing/exporting data - read_csv(), write_csv() <br />
+
+##R Basics (1.5 points)
+
+1. Fix this code with the fewest number of changes possible so it works:
+```{r}
+#My_data.name___is.too00ooLong! <- c( 1 , 2 , 3 )
+My_data.name___is.too00ooLong <- c( 1 , 2 , 3 )
+```
+
+2. Fix this code so it works:
+
+```{r}
+#my_string <- C('has', 'an', 'error', 'in', 'it)
+my_string <- c('has', 'an', 'error', 'in', 'it')
+```
+
+3. Look at the code below and comment on what happened to the values in the vector.
+
++ R coerced the entire vector to character even though some values
+are numeric because we cannot have a vector with values of
+multiple different types. We can check this using various 
+commands to test the type of vector.
+
+```{r}
+my_vector <- c(1, 2, '3', '4', 5)
+my_vector
+
+typeof(my_vector)
+is.numeric(my_vector)
+is.character(my_vector)
+```
+
+
+##Data import/export (3 points)
+
+1. Download the rail_trail.txt file from Canvas (in the Midterm Exam section) and successfully import it
+into R. Prove that it was imported successfully by including your import code and taking a glimpse of
+the result.
+
+```{r}
+railtrail_dsn <- read_delim('I:/rail_trail.txt', delim="|")
+glimpse(railtrail_dsn)
+```
+
+
+2. Export the file into a comma-separated file and name it “rail_trail.csv”. Make sure you define the path
+correctly so that you know where it gets saved. Then reload the file. Include your export and import
+code and take another glimpse.
+
+```{r}
+write_csv(railtrail_dsn, 'I:/rail_trail.csv')
+look_again <- read_csv('I:/rail_trail.csv')
+glimpse(look_again)
+```
+
+##Visualization (6 points)
+
+1. Critique this graphic: give only three examples of what is wrong with this graphic. Be concise.
+
+- There is no graphical representation or footnote about a 
+'missing' or 'refused response' category so the neighboring percentages do not add up to 100.
+- There is no clear visual division between the charts by
+age category and charts by gender.
+- Having two circles makes one think that these are two entirely
+different populations...these seem like they are intending to be
+pie charts but aren't.
+
+2. Reproduce this graphic using the diamonds data set.
+
+```{r}
+ggplot(data = diamonds) + 
+    geom_boxplot(mapping = aes(x = cut, y=carat, fill = color), position="identity") +
+    coord_flip() +
+    xlab("CUT OF DIAMOND") +
+    ylab("CARAT OF DIAMOND")
+```
+
+3. The previous graphic is not very useful. We can make it much more useful by changing one thing about it. Make the change and plot it again.
+
++ The colors in the Legend are all overlaid using the position="identity" method, but if 
+we change this to position="dodge" then we can actually see the differences by color.
+
+```{r}
+ggplot(data = diamonds) + 
+    geom_boxplot(mapping = aes(x = cut, y=carat, fill = color), position="dodge") +
+    coord_flip() +
+    xlab("CUT OF DIAMOND") +
+    ylab("CARAT OF DIAMOND")
+```
+
+## Data munging and wrangling (6 points)
+
+1. Is this data “tidy”? If yes, leave it alone and go to the next problem. If no, make it tidy.
+
++ This dataset is tidy because each variable is a column and each observation is a row,
+however it could be made more useful to work with by re-shaping the data.
+
+```{r}
+#View(table2)
+```
+
+2. Create a new column in the diamonds data set called price_per_carat that shows the price of each diamond per carat (hint: divide). Only show me the code, not the output.
+
+```{r}
+#new_dsn <- mutate(diamonds, price_per_carat=carat/price)
+#head(new_dsn)
+```
+
+3. For each cut of a diamond in the diamonds data set, how many
+diamonds, and what proportion, have a price > 10000 and a carat < 1.5? There are several ways to get an answer, but your solution
+must use the data weangling verbs from the tidyverse in order to 
+get credit.
+
+Do the results make sense? Why?
+
++ It makes sense that this is a low proportion because generally we would think that a 
+higher-priced diamond does not have a lower number of carats.
+
+Do we need to be wary of any of these numbers? Why?
+
++ The fact that these are grouped by Cut likely impacts the relationship between price
+and carat so we should look at this overall before making assumptions directly from this 
+grouping.
+
+```{r}
+#head(diamonds)
+
+by_cut <- group_by(diamonds, cut)
+  summarize(by_cut,
+            count=n(),
+            n_hiprice = sum(price > 10000),
+            n_lowcarat = sum(carat < 1.5),
+            hiprice_lowcarat = sum((price > 10000) & (carat < 1.5)),
+            prop_diam = (hiprice_lowcarat/count)
+            )
+  
+```
+
+
+## EDA (6 points)
+
+Take a look at the txhousing data set that is included with the ggplot2 package and answer these questions:
+
+```{r}
+#head(txhousing, 50)
+
+#1
+unique(txhousing$year)
+
+#2
+summarize(txhousing,
+    dist_year = n_distinct(year),
+    dist_city = n_distinct(city)
+)
+
+#3
+(arrange(txhousing, desc(sales)))
+
+#4
+ggplot(data = txhousing) + 
+    geom_point(mapping = aes(x = listings, y = sales))
+
+#5
+group_by(txhousing, city) %>%
+  summarize(total = n(),
+            missing2 = sum(is.na(sales)),
+            prop_miss_sales =(missing2/total))
+
+#6 
+limited_dsn <- filter(txhousing, sales > 500) #1,883 rows
+
+group_by(limited_dsn, city) %>%
+  summarize(mean_median = mean(median),
+            med_median = median(median),
+            IQR_med = IQR(median)
+            )
+```
+
+1. During what time period is this data from?
+
++ The data in this dataset ranges from Year 2000 to Year 2015
+
+2. How many cities are represented?
+
++ There are 46 distinct cities represented.
+
+3. Which city, month and year had the highest number of sales?
+
++ The highest number of sales were seen in Houston in July of 2015.
+
+4. What kind of relationship do you think exists between the number of listings and the number of sales? Check your assumption and show your work.
+
++ Based on the plot, we can see a positive assoication between number of listings
+and number of sales in the the more listings there are, the more sales there are.
+
+5. What proportion of sales is missing for each city?
+
++ See prop_miss_sales variable above for proportion of missing sales by city.
+
+6. Looking at only the cities and months with greater than 500 sales:
+
+Are the distributions of the median sales price (column name median), when grouped by city, different? The same? Show your work.
+
++ Distributions are different by city as seen above.
+
+Any cities that stand out that you’d want to investigate further?
+
++ I would be interested in looking at those cities with the highest and lowest
+interqartile range in order to examine why the range is so wide: this would
+be Corpus Christi (low IQR) and Austin (high IQR).
+
+Why might we want to filter out all cities and months with sales less than 500?
+
++ We would want to filter these out because these are outliers that would skew
+our analyses when looking at overall analyses of the data.
+
