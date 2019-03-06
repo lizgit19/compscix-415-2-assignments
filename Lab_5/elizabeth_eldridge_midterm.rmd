@@ -7,6 +7,8 @@ output:
     toc: true
 ---
 
+[Click here for hyperlink to my repository!](https://github.com/lizgit19/compscix-415-2-assignments/tree/master/Lab_5)
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
