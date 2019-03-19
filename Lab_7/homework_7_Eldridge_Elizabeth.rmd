@@ -1,0 +1,202 @@
+---
+title: "COMPSCIX 415.2 Homework 7"
+author: "Elizabeth Eldridge"
+date: "March 12, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+
+## Exercise 1:
+Load the train.csv dataset into R. How many observations and columns are there?
+
+- There are 1,460 rows and 81 columns in the train.csv dataset.
+
+```{r}
+traindata <- read_csv('I:/train.csv')
+
+head(traindata)
+nrow(traindata)
+ncol(traindata)
+```
+
+
+## Exercise 2:
+Normally at this point you would spend a few days on EDA, but for this homework we will do some very
+basic EDA and get right to fitting some linear regression models.
+Our target will be SalePrice.
+
+Visualize the distribution of SalePrice.
+Visualize the covariation between SalePrice and Neighborhood.
+Visualize the covariation between SalePrice and OverallQual.
+
+```{r}
+#names(traindata)
+
+#Visualize the distribution of SalePrice
+(g1<-ggplot(traindata, aes(SalePrice)) + geom_histogram())
+
+#Visualize the covariation between SalePrice and Neighborhood
+ggplot(traindata, aes(SalePrice, Neighborhood) ) +
+  geom_jitter()
+
+#Visualize the covariation between SalePrice and OverallQual
+ggplot(traindata, aes(SalePrice, OverallQual) ) +
+  geom_jitter()
+
+```
+
+
+## Exercise 3:
+
+Our target is called SalePrice. First, we can fit a simple regression model consisting of only the intercept (the average of SalePrice). 
+
+Fit the model and then use the broom package to take a look at the coefficient:
+
+- The coefficient is 180921.2
+
+Compare the coefficient to the average value of SalePrice:
+
+- Intercept is the same as the mean (180921 vs. 180921.2).
+
+Take a look at the R-squared:
+
+- The R^2 is 0, meaning 0% of the variability is explained.
+
+```{r}
+library(broom)
+
+traindata$mean_salesprice <- mean(traindata$SalePrice)
+
+#Fit a simple regression model consisting of only the intercept
+m1 <- lm(formula = SalePrice ~ 1, data = traindata)
+
+#take a look at the coefficient
+tidy(m1)
+
+#take a look at the R-squared
+glance(m1)
+
+```
+
+
+## Exercise 4:
+Now fit a linear regression model using GrLivArea, OverallQual, and Neighborhood as the features. Don’t
+forget to look at data_description.txt to understand what these variables mean. Ask yourself these
+questions before fitting the model:
+
+**Variable definitions:**
+
+**GrLivArea:** Above grade (ground) living area square feet
+
+**OverallQual:** Rates the overall material and finish of the house <br />
+            10  Very Excellent <br />
+            9   Excellent <br />
+            8   Very Good <br />
+            7   Good <br />
+            6   Above Average <br />
+            5   Average <br />
+            4   Below Average <br />
+            4.  Fair <br />
+            5.  Poor <br />
+            1.  Very Poor <br />
+            
+**Neighborhood:** Categorical neighborhoods
+
+```{r}
+#look at individual relationships first
+train_lm1 <- lm(formula = SalePrice ~ GrLivArea, data = traindata)
+tidy(train_lm1) 
+#This means that "the probability of getting a coefficient of 107.1304 or bigger if there was actually no relationship between 'square feet of above ground living area' and 'Saleprice', is 4.518034e-223, so we conclude that 'square feet of above ground living area' by itself is not a significant predictor of price."
+
+(train_lm2 <- lm(formula = SalePrice ~ OverallQual, data = traindata))
+tidy(train_lm2) 
+#This means that "the probability of getting a coefficient of 45435.80 or bigger if there was actually no relationship between 'Rating of overall material and finish of the house' and 'Saleprice', is 2.185675e-313, so we conclude that 'Rating of overall material and finish of the house' by itself is not a significant predictor of price."
+
+(train_lm3 <- lm(formula = SalePrice ~ Neighborhood, data = traindata))
+tidy(train_lm3)
+
+#fit a linear regression model using GrLivArea, OverallQual, and Neighborhood
+#train_mult_lm <- lm(formula = SalePrice ~ GrLivArea + OverallQual + Neighborhood, data = traindata)
+#tidy(train_mult_lm)
+#glance(train_mult_lm)
+##########^^^^CANNOT RUN FATAL ERROR< FIX MEMRORY ISSUES WITH MULTILEVEL MODELLING^^^^^^^^^###########################
+
+##Re-installed newest version of R b/c internet search revealed a bug in prior version, but issue still persists
+
+#fit with only two variables to avoid fatal error crashing:
+train_mult_lm2 <- lm(formula = SalePrice ~ GrLivArea + OverallQual, data = traindata)
+tidy(train_mult_lm2)
+glance(train_mult_lm2)
+
+```
+
+What kind of relationship will these features have with our target?
+
+- When looked at individually, above ground square feet and rating of materials used in building both have
+a positive relationship on price, whereas the relation between neighborhood and price varies between positive/
+negative depending on neighborhood.
+
+Can the relationship be estimated linearly?
+
+- These relationships can be estimated linearly, but we should keep in mind the assumptions of linear 
+regression: (1) Linearity, (2) Homoskedasticity [constant variance], (3) Independence, 
+and (4) No multicollinarity
+
+Are these good features, given the problem we are trying to solve?
+
+- The features of square feet and rating of building material are good features because they are estimated numerically,
+but the feature of neighborhood might not be the best feature given that it is a categorical variable and also 
+may likely introduce multicollinearity in that the space available for building property (i.e. square feet) could
+be highly correlated with the neighborhood.
+
+After fitting the model, output the coefficients and the R-squared using the broom package.
+Answer these questions:
+
+How would you interpret the coefficients on GrLivArea and OverallQual?
+
+- For every one unit increase in SalePrice, the GrLivArea increases, on average, by 55.9 square feet, controlling for all other features, i.e. assuming all other features are held constant.
+
+- For every one unit increase in SalePrice, the OverallQual increases, on average, by 32,849.04, controlling for all other features, i.e. assuming all other features are held constant.
+
+How would you interpret the coefficient for NeighorhoodBrkSide?
+
+- For every one unit increase in SalePrice, the NeighorhoodBrkSide decreases, on average, by 70,037, controlling for all other features, i.e. assuming all other features are held constant.
+
+Are the features significant?
+
+- Neither of these features are significant, as determined by the p-value that is over 0.05.
+
+Are the features practically significant?
+
+- The first two coefficients are practical despite that they are not significant in the model, however neighborhoods being classified categorically is not very practical. Perhaps they should be rated by safety or other measure more quantifiable.
+
+Is the model a good fit?
+
+- This model is a good fit, as determined by the Adjusted R-Squared (we look at the adjusted R-Squared rather than 
+the R-Squared for multivariate models) of 0.7137, meaning 71.4% of variability is explained by this model.
+
+
+## Exercise 6:
+One downside of the linear model is that it is sensitive to unusual values because the distance incorporates a
+squared term. Fit a linear model to the simulated data below (use y as the target and x as the feature), and
+look at the resulting coefficients and R-squared. Rerun it about 5-6 times to generate different simulated
+datasets. What do you notice about the model’s coefficient on x and the R-squared values?
+
+- I notice that both the model's coefficient on x and the R-squared values are changing slightly with each run of the model using the simulated data, however the p-value remains non-significant. While the Adjusted R-Squared changes, it tends to explain somewhere between 70-80% of variability with each different run.
+
+```{r}
+sim1a <- tibble(
+x = rep(1:10, each = 3),
+y = x * 1.5 + 6 + rt(length(x), df = 2)
+)
+
+sim_mod <- lm(formula = y ~ x, data = sim1a)
+tidy(sim_mod)
+glance(sim_mod)
+
+```
