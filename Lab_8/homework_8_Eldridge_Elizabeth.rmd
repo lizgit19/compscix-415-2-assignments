@@ -1,0 +1,51 @@
+---
+title: "COMPSCIX 415.2 Homework 8"
+author: "Elizabeth Eldridge"
+date: "March 19, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(jsonlite)
+library(leaflet)
+```
+
+
+###HOMEWORK 
+#Excercise 1
+Create an R function that takes as its input argument a city name and creates a slippy leaflet map as its output. The leaflet map should already be zoomed in onto the city that is input into the function and should contain markers for each of the bike station locations, and each marker should show the number of bikes when hovered over by the mouse cursor (see example below). Feel free to add your own flourishes to the map.
+
+```{r}
+url <- paste0("https://api.jcdecaux.com/vls/v1/stations?contract=",'Lyon',"&apiKey=188fd3356f8893c4f8d23fd6a18c34fe63d076a5")
+df_api <- fromJSON(url)
+
+#To determine best SetView, get means of lat/longs
+mean_long <- mean(df_api$position$lng)
+mean_lat <- mean(df_api$position$lat)
+mean_long
+mean_lat
+
+Lyon_latlong <- as.data.frame(df_api)
+
+###################### Create Slippy Map using Function ###########################
+homework_function <- function(Lyon) {
+  #Create lat and long variables
+  Lyon_latlong <- Lyon_latlong %>%
+      mutate(longitude = Lyon_latlong$position$lng, latitude = Lyon_latlong$position$lat)
+  #Create map with pop-ups
+  map_this <- leaflet(Lyon_latlong) %>%
+      setView(lng = 4.849781, lat = 45.76058, zoom = 12) %>%
+      addTiles() %>%
+      addMarkers(Lyon_latlong$longitude, Lyon_latlong$latitude, 
+                 popup = ~as.character(Lyon_latlong$available_bikes), 
+                 label = ~as.character(Lyon_latlong$available_bikes))
+}
+
+map_it <- homework_function(Lyon)
+map_it
+
+```
+
